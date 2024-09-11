@@ -1,0 +1,13 @@
+#jupyter
+jupyterlab
+
+#testing
+pytest
+pytest-cov
+
+#formatting/linting
+ruff
+mypy
+
+#editable
+-e .
