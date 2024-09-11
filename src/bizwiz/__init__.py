@@ -13,3 +13,4 @@ __maintainer_email__ = '"Nick Grundl" <nicholasgrundl@gmail.com>'
 #default imports
 
 from .data import PathManager
+from .llm import load_llm_env, ChatManager
