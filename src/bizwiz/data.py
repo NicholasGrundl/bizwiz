@@ -12,7 +12,7 @@ class PathManager:
     """Manage paths to data and files"""
 
     def __init__(self, data_dir: PathType) -> None:
-        self._data_dir = None
+        self.data_dir = data_dir
 
     #properties
     @property
@@ -35,3 +35,12 @@ class PathManager:
         if not filepath.exists():
             raise FileNotFoundError(f"File not found: {filepath}")
         return filepath
+    
+    def find_data_files(self, suffix: str | None = None) -> list[pathlib.Path]:
+        """Find files in the data directory that have a suffix"""
+        if suffix is None:
+            data_files = list(self.data_dir.glob("*"))
+        else:
+            suffix = suffix if suffix.startswith(".") else "." + suffix
+            data_files = list(self.data_dir.glob(f"*{suffix}"))
+        return [str(p) for p in data_files]
