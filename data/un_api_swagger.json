@@ -1,0 +1,3428 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SDMX RESTful API, v1.5.0",
+    "description": "<p>The SDMX RESTful API, released in September 2020.</p><p>For additional information, check the <a rel='noopener noreferrer' target='_blank' href='https://github.com/sdmx-twg/sdmx-rest/tree/master/v2_1/ws/rest/docs'>official sdmx-rest specification</a> or the <a rel='noopener noreferrer' target='_blank' href='https://github.com/sdmx-twg/sdmx-rest/wiki'>dedicated Wiki</a>.</p>",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "/ws"
+    },
+    {
+      "url": "https://sdw-wsrest.ecb.europa.eu/service",
+      "description": "ECB"
+    },
+    {
+      "url": "https://sdw-wsrest.ecb.europa.eu/service",
+      "description": "Eurostat"
+    },
+    {
+      "url": "http://stats.oecd.org/sdmx-json",
+      "description": "OECD (data only)"
+    },
+    {
+      "url": "http://data.un.org/ws/rest",
+      "description": "UNdata"
+    },
+    {
+      "url": "https://www.ilo.org/sdmx/rest",
+      "description": "ILO"
+    },
+    {
+      "url": "https://virtserver.swaggerhub.com/sdmx-rest/sdmx-rest/1.3.0",
+      "description": "SwaggerHub API Auto Mocking"
+    }
+  ],
+  "paths": {
+    "/rest/availableconstraint/{flowRef}/{key}/{providerRef}/{componentIds}": {
+      "get": {
+        "tags": [
+          "Data availability queries"
+        ],
+        "summary": "Get information about data availability",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "componentIds",
+            "in": "path",
+            "description": "The id of the Dimension for which to obtain availability information about. Use all to indicate that data availability should be provided for all dimensions.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Instructs the web service to return a ContentConstraint which defines a Cube Region containing values which will be returned by executing the query (mode='exact') vs a Cube Region showing what values remain valid selections that could be added to the data query (mode='available'). A valid selection is one which results in one or more series existing for the selected value, based on the current data query selection state defined by the current path parameters.",
+            "schema": {
+              "enum": [
+                "exact",
+                "available"
+              ],
+              "type": "string",
+              "default": "exact",
+              "example": null
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "Instructs the web service to return (or not) the artefacts referenced by the ContentConstraint to be returned.",
+            "schema": {
+              "enum": [
+                "none",
+                "all",
+                "datastructure",
+                "conceptscheme",
+                "codelist",
+                "dataproviderscheme",
+                "dataflow"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/availableconstraint/{flowRef}/{key}/{providerRef}/{componentIds}": {
+      "get": {
+        "tags": [
+          "Data availability queries"
+        ],
+        "summary": "Get information about data availability",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "componentIds",
+            "in": "path",
+            "description": "The id of the Dimension for which to obtain availability information about. Use all to indicate that data availability should be provided for all dimensions.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Instructs the web service to return a ContentConstraint which defines a Cube Region containing values which will be returned by executing the query (mode='exact') vs a Cube Region showing what values remain valid selections that could be added to the data query (mode='available'). A valid selection is one which results in one or more series existing for the selected value, based on the current data query selection state defined by the current path parameters.",
+            "schema": {
+              "enum": [
+                "exact",
+                "available"
+              ],
+              "type": "string",
+              "default": "exact",
+              "example": null
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "Instructs the web service to return (or not) the artefacts referenced by the ContentConstraint to be returned.",
+            "schema": {
+              "enum": [
+                "none",
+                "all",
+                "datastructure",
+                "conceptscheme",
+                "codelist",
+                "dataproviderscheme",
+                "dataflow"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/availableconstraint/{flowRef}/body/{providerRef}/{componentIds}": {
+      "post": {
+        "tags": [
+          "Data availability queries"
+        ],
+        "summary": "Get information about data availability",
+        "description": "Same applicability as the GET method.\r\nThe POST method is used to include the 'key' argument in the body of query in order to workaround URL size limitations.\r\n            \r\nUse and set the Content-Type HTTP header to ```application/x-www-form-urlencoded```",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "componentIds",
+            "in": "path",
+            "description": "The id of the Dimension for which to obtain availability information about. Use all to indicate that data availability should be provided for all dimensions.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Instructs the web service to return a ContentConstraint which defines a Cube Region containing values which will be returned by executing the query (mode='exact') vs a Cube Region showing what values remain valid selections that could be added to the data query (mode='available'). A valid selection is one which results in one or more series existing for the selected value, based on the current data query selection state defined by the current path parameters.",
+            "schema": {
+              "enum": [
+                "exact",
+                "available"
+              ],
+              "type": "string",
+              "default": "exact",
+              "example": null
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "Instructs the web service to return (or not) the artefacts referenced by the ContentConstraint to be returned.",
+            "schema": {
+              "enum": [
+                "none",
+                "all",
+                "datastructure",
+                "conceptscheme",
+                "codelist",
+                "dataproviderscheme",
+                "dataflow"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "key": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/availableconstraint/{flowRef}/body/{providerRef}/{componentIds}": {
+      "post": {
+        "tags": [
+          "Data availability queries"
+        ],
+        "summary": "Get information about data availability",
+        "description": "Same applicability as the GET method.\r\nThe POST method is used to include the 'key' argument in the body of query in order to workaround URL size limitations.\r\n            \r\nUse and set the Content-Type HTTP header to ```application/x-www-form-urlencoded```",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "componentIds",
+            "in": "path",
+            "description": "The id of the Dimension for which to obtain availability information about. Use all to indicate that data availability should be provided for all dimensions.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "description": "Instructs the web service to return a ContentConstraint which defines a Cube Region containing values which will be returned by executing the query (mode='exact') vs a Cube Region showing what values remain valid selections that could be added to the data query (mode='available'). A valid selection is one which results in one or more series existing for the selected value, based on the current data query selection state defined by the current path parameters.",
+            "schema": {
+              "enum": [
+                "exact",
+                "available"
+              ],
+              "type": "string",
+              "default": "exact",
+              "example": null
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "Instructs the web service to return (or not) the artefacts referenced by the ContentConstraint to be returned.",
+            "schema": {
+              "enum": [
+                "none",
+                "all",
+                "datastructure",
+                "conceptscheme",
+                "codelist",
+                "dataproviderscheme",
+                "dataflow"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "key": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/data/{flowRef}/{key}/{providerRef}": {
+      "get": {
+        "tags": [
+          "Data queries"
+        ],
+        "summary": "Get data",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "firstNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the oldest one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "lastNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the most recent one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "dimensionAtObservation",
+            "in": "query",
+            "description": "<p>Indicates <strong>how the data should be packaged</strong>.</p><p>The options are:</p><ul><li><code>TIME_PERIOD</code>: A timeseries view</li><li>The ID of any other dimension: A cross-sectional view of the data</li><li><code>AllDimensions</code>: A flat view of the data.</li></ul>",
+            "schema": {
+              "pattern": "^[A-Za-z][A-Za-z\\d_-]*$",
+              "type": "string",
+              "default": "TIME_PERIOD",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The <strong>amount of information</strong> to be returned.</p><p>Possible options are:</p><ul><li><code>full</code>: All data and documentation</li><li><code>dataonly</code>: Everything except attributes</li><li><code>serieskeysonly</code>: The series keys. This is useful to return the series that match a certain query, without returning the actual data (e.g. overview page)</li><li><code>nodata</code>: The series, including attributes and annotations, without observations.</li></ul>",
+            "schema": {
+              "enum": [
+                "full",
+                "dataonly",
+                "serieskeysonly",
+                "nodata"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "description": "<p>Retrieve <strong>previous versions of the data</strong>.</p><p>When <code>true</code>, the response will contain up to two datasets per dissemination, one containing new or updated values and one containing the deleted data (if any).</p>",
+            "schema": {
+              "type": "boolean",
+              "default": "false",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.data+json;version=2": { },
+              "application/vnd.sdmx.data+json;version=2.0": { },
+              "application/vnd.sdmx.data+json;version=2.0.0": { },
+              "application/vnd.sdmx.data+json;version=1.0": { },
+              "application/vnd.sdmx.data+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/mappingValidation;version=2.1": { },
+              "application/mappingValidation;version=2.0": { },
+              "application/mappingValidation": { },
+              "text/csv": { },
+              "application/vnd.sdmx.data+csv": { },
+              "application/vnd.sdmx.data+csv;labels=id": { },
+              "application/vnd.sdmx.data+csv;labels=both": { },
+              "application/vnd.sdmx.data+csv;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=2.1": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.0": { },
+              "application/vnd.sdmx.compactdata+xml; version=2.0": { },
+              "application/vnd.sdmx.crosssectionaldata+xml; version=2.0": { },
+              "application/vnd.sdmx.edidata; version=SDMX-EDI": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/data/{flowRef}/{key}/{providerRef}": {
+      "get": {
+        "tags": [
+          "Data queries"
+        ],
+        "summary": "Get data",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "firstNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the oldest one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "lastNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the most recent one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "dimensionAtObservation",
+            "in": "query",
+            "description": "<p>Indicates <strong>how the data should be packaged</strong>.</p><p>The options are:</p><ul><li><code>TIME_PERIOD</code>: A timeseries view</li><li>The ID of any other dimension: A cross-sectional view of the data</li><li><code>AllDimensions</code>: A flat view of the data.</li></ul>",
+            "schema": {
+              "pattern": "^[A-Za-z][A-Za-z\\d_-]*$",
+              "type": "string",
+              "default": "TIME_PERIOD",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The <strong>amount of information</strong> to be returned.</p><p>Possible options are:</p><ul><li><code>full</code>: All data and documentation</li><li><code>dataonly</code>: Everything except attributes</li><li><code>serieskeysonly</code>: The series keys. This is useful to return the series that match a certain query, without returning the actual data (e.g. overview page)</li><li><code>nodata</code>: The series, including attributes and annotations, without observations.</li></ul>",
+            "schema": {
+              "enum": [
+                "full",
+                "dataonly",
+                "serieskeysonly",
+                "nodata"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "description": "<p>Retrieve <strong>previous versions of the data</strong>.</p><p>When <code>true</code>, the response will contain up to two datasets per dissemination, one containing new or updated values and one containing the deleted data (if any).</p>",
+            "schema": {
+              "type": "boolean",
+              "default": "false",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.data+json;version=2": { },
+              "application/vnd.sdmx.data+json;version=2.0": { },
+              "application/vnd.sdmx.data+json;version=2.0.0": { },
+              "application/vnd.sdmx.data+json;version=1.0": { },
+              "application/vnd.sdmx.data+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/mappingValidation;version=2.1": { },
+              "application/mappingValidation;version=2.0": { },
+              "application/mappingValidation": { },
+              "text/csv": { },
+              "application/vnd.sdmx.data+csv": { },
+              "application/vnd.sdmx.data+csv;labels=id": { },
+              "application/vnd.sdmx.data+csv;labels=both": { },
+              "application/vnd.sdmx.data+csv;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=2.1": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.0": { },
+              "application/vnd.sdmx.compactdata+xml; version=2.0": { },
+              "application/vnd.sdmx.crosssectionaldata+xml; version=2.0": { },
+              "application/vnd.sdmx.edidata; version=SDMX-EDI": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/data/{flowRef}/body/{providerRef}": {
+      "post": {
+        "tags": [
+          "Data queries"
+        ],
+        "summary": "Get data",
+        "description": "Same applicability as the GET method.\r\nThe POST method is used to include the 'key' argument in the body of query in order to workaround URL size limitations.\r\n            \r\nUse and set the Content-Type HTTP header to ```application/x-www-form-urlencoded```",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "firstNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the oldest one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "lastNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the most recent one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "dimensionAtObservation",
+            "in": "query",
+            "description": "<p>Indicates <strong>how the data should be packaged</strong>.</p><p>The options are:</p><ul><li><code>TIME_PERIOD</code>: A timeseries view</li><li>The ID of any other dimension: A cross-sectional view of the data</li><li><code>AllDimensions</code>: A flat view of the data.</li></ul>",
+            "schema": {
+              "pattern": "^[A-Za-z][A-Za-z\\d_-]*$",
+              "type": "string",
+              "default": "TIME_PERIOD",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The <strong>amount of information</strong> to be returned.</p><p>Possible options are:</p><ul><li><code>full</code>: All data and documentation</li><li><code>dataonly</code>: Everything except attributes</li><li><code>serieskeysonly</code>: The series keys. This is useful to return the series that match a certain query, without returning the actual data (e.g. overview page)</li><li><code>nodata</code>: The series, including attributes and annotations, without observations.</li></ul>",
+            "schema": {
+              "enum": [
+                "full",
+                "dataonly",
+                "serieskeysonly",
+                "nodata"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "description": "<p>Retrieve <strong>previous versions of the data</strong>.</p><p>When <code>true</code>, the response will contain up to two datasets per dissemination, one containing new or updated values and one containing the deleted data (if any).</p>",
+            "schema": {
+              "type": "boolean",
+              "default": "false",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "key": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.data+json;version=2": { },
+              "application/vnd.sdmx.data+json;version=2.0": { },
+              "application/vnd.sdmx.data+json;version=2.0.0": { },
+              "application/vnd.sdmx.data+json;version=1.0": { },
+              "application/vnd.sdmx.data+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/mappingValidation;version=2.1": { },
+              "application/mappingValidation;version=2.0": { },
+              "application/mappingValidation": { },
+              "text/csv": { },
+              "application/vnd.sdmx.data+csv": { },
+              "application/vnd.sdmx.data+csv;labels=id": { },
+              "application/vnd.sdmx.data+csv;labels=both": { },
+              "application/vnd.sdmx.data+csv;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=2.1": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.0": { },
+              "application/vnd.sdmx.compactdata+xml; version=2.0": { },
+              "application/vnd.sdmx.crosssectionaldata+xml; version=2.0": { },
+              "application/vnd.sdmx.edidata; version=SDMX-EDI": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/data/{flowRef}/body/{providerRef}": {
+      "post": {
+        "tags": [
+          "Data queries"
+        ],
+        "summary": "Get data",
+        "description": "Same applicability as the GET method.\r\nThe POST method is used to include the 'key' argument in the body of query in order to workaround URL size limitations.\r\n            \r\nUse and set the Content-Type HTTP header to ```application/x-www-form-urlencoded```",
+        "parameters": [
+          {
+            "name": "flowRef",
+            "in": "path",
+            "description": "<p>The <strong>statistical domain</strong> (aka dataflow) of the data to be returned.</p><p>Examples:</p><ul><li><code>EXR</code>: The ID of the domain</li><li><code>ECB,EXR</code>: The EXR domain, maintained by the ECB</li><li><code>ECB,EXR,1.0</code>: Version 1.0 of the EXR domain, maintained by the ECB</li></ul>",
+            "schema": {
+              "pattern": "^([a-zA-Z][a-zA-Z\\d_-]*(\\.[a-zA-Z][a-zA-Z\\d_-]*)*,)?[a-zA-Z\\d_@$-]+(,(latest|(\\d+(\\.\\d+)*)))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "providerRef",
+            "in": "path",
+            "description": "<p>The <strong>provider of the data</strong> to be retrieved.</p><p>The keyword <code>all</code> can be used to indicate that all data matching the supplied key and belonging to the specified dataflow and provided by any data provider must be returned.</p><p>Examples:</p><ul><li><code>ECB</code>: Data provided by ECB</li><li><code>CH2+NO2</code>: Data provided by CH2 or NO2</li></ul>",
+            "schema": {
+              "pattern": "^(([A-Za-z][A-Za-z\\d_-]*)(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+(\\+([A-Za-z][A-Za-z\\d_-]*(\\.[A-Za-z][A-Za-z\\d_-]*)*,)?[A-Za-z\\d_@$-]+)*$",
+              "type": "string",
+              "default": "ALL",
+              "example": null
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "description": "<p>The (possibly partial) <strong>key identifying the data to be returned</strong>.</p><p>The keyword <code>all</code> can be used to indicate that all data belonging to the specified dataflow and provided by the specified provider must be returned.</p><p>The examples below are based on the following key: Frequency, Country, Component of inflation, Unit of measure.</p><ul><li><code>M.DE.000000.ANR</code>: Full key, matching exactly one series, i.e. the monthly (<code>M</code>) rates of change (<code>ANR</code>) of overall inflation (<code>000000</code>) in Germany (<code>DE</code>).</li><li><code>A+M.DE.000000.ANR</code>: Retrieves both annual and monthly data (<code>A+M</code>), matching exactly two series</li><li><code>A+M..000000.ANR</code>: The second dimension is wildcarded, and it wil therefore match the annual and monthly rates of change of overall inflation in any country.</li></ul>",
+            "schema": {
+              "pattern": "^([\\.A-Za-z\\d_@$-]+(\\+[A-Za-z\\d_@$-]+)*)*$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "startPeriod",
+            "in": "query",
+            "description": "<p>The start of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-Q1</code>: Quarter (SDMX)</li><li><code>2000-W01</code>: Week (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "endPeriod",
+            "in": "query",
+            "description": "<p>The end of the period for which results should be supplied (inclusive).</p><p>Can be expressed using 8601 dates or SDMX reporting periods.</p><p>Examples:</p><ul><li><code>2000</code>: Year (ISO 8601)</li><li><code>2000-01</code>: Month (ISO 8601)</li><li><code>2000-01-01</code>: Date (ISO 8601)</li><li><code>2000-S1</code>: Semester (SDMX)</li><li><code>2000-D001</code>: Day (SDMX)</li></ul>",
+            "schema": {
+              "pattern": "^\\d{4}-?((\\d{2}(-\\d{2})?)|A1|S[1|2]|Q[1-4]|T[1-3]|M(0[1-9]|1[0-2])|W(0[1-9]|[1-4][0-9]|5[0-3])|D(0[0-9][1-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?$",
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "updatedAfter",
+            "in": "query",
+            "description": "<p>The last time the query was performed by the client.</p><p>The response should include the latest version of what has changed in the database since that point in time (i.e. additions, revisions or deletions since the last time the query was performed).</p>",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          },
+          {
+            "name": "firstNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the oldest one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "lastNObservations",
+            "in": "query",
+            "description": "The maximum number of observations to be returned starting from the most recent one.",
+            "schema": {
+              "type": "integer",
+              "example": null
+            }
+          },
+          {
+            "name": "dimensionAtObservation",
+            "in": "query",
+            "description": "<p>Indicates <strong>how the data should be packaged</strong>.</p><p>The options are:</p><ul><li><code>TIME_PERIOD</code>: A timeseries view</li><li>The ID of any other dimension: A cross-sectional view of the data</li><li><code>AllDimensions</code>: A flat view of the data.</li></ul>",
+            "schema": {
+              "pattern": "^[A-Za-z][A-Za-z\\d_-]*$",
+              "type": "string",
+              "default": "TIME_PERIOD",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The <strong>amount of information</strong> to be returned.</p><p>Possible options are:</p><ul><li><code>full</code>: All data and documentation</li><li><code>dataonly</code>: Everything except attributes</li><li><code>serieskeysonly</code>: The series keys. This is useful to return the series that match a certain query, without returning the actual data (e.g. overview page)</li><li><code>nodata</code>: The series, including attributes and annotations, without observations.</li></ul>",
+            "schema": {
+              "enum": [
+                "full",
+                "dataonly",
+                "serieskeysonly",
+                "nodata"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "includeHistory",
+            "in": "query",
+            "description": "<p>Retrieve <strong>previous versions of the data</strong>.</p><p>When <code>true</code>, the response will contain up to two datasets per dissemination, one containing new or updated values and one containing the deleted data (if any).</p>",
+            "schema": {
+              "type": "boolean",
+              "default": "false",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "encoding": {
+                "key": {
+                  "style": "form"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.data+json;version=2": { },
+              "application/vnd.sdmx.data+json;version=2.0": { },
+              "application/vnd.sdmx.data+json;version=2.0.0": { },
+              "application/vnd.sdmx.data+json;version=1.0": { },
+              "application/vnd.sdmx.data+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/mappingValidation;version=2.1": { },
+              "application/mappingValidation;version=2.0": { },
+              "application/mappingValidation": { },
+              "text/csv": { },
+              "application/vnd.sdmx.data+csv": { },
+              "application/vnd.sdmx.data+csv;labels=id": { },
+              "application/vnd.sdmx.data+csv;labels=both": { },
+              "application/vnd.sdmx.data+csv;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=original": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=id;timeformat=normalized": { },
+              "application/vnd.sdmx.data+csv;version=2.0.0;labels=both;timeformat=normalized": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=3.0": { },
+              "application/vnd.sdmx.structurespecificdata+xml; version=2.1": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { },
+              "application/vnd.sdmx.genericdata+xml; version=2.0": { },
+              "application/vnd.sdmx.compactdata+xml; version=2.0": { },
+              "application/vnd.sdmx.crosssectionaldata+xml; version=2.0": { },
+              "application/vnd.sdmx.edidata; version=SDMX-EDI": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/{structure}/{agencyId}/{resourceId}/{version}/{itemId}": {
+      "get": {
+        "tags": [
+          "Structure queries"
+        ],
+        "summary": "Item Scheme queries",
+        "description": "Item queries extend structure queries by allowing to retrieve items in item schemes such as particular codes in a codelist.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The type of item scheme (e.g. codelist, agencyscheme, etc.)",
+            "required": true,
+            "schema": {
+              "enum": [
+                "conceptscheme",
+                "codelist",
+                "categoryscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "vtlmappingscheme",
+                "valuelist",
+                "structure"
+              ],
+              "type": "string",
+              "default": "structure",
+              "example": null
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "<p>The agency maintaining the artefact to be returned.</p>\r\n<p>It is possible to set more than one agency, using ```+``` as separator (e.g. BIS+ECB).</p>\r\n<p>The keyword ```all``` can be used to indicate that artefacts maintained by any maintenance agency should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "<p>The id of the artefact to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. CL_FREQ+CL_CONF_STATUS).</p>\r\n<p>The keyword ```all``` can be used to indicate that any artefact of the specified resource type, {agencyID} and {version} should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "<p>The version of the artefact to be returned.</p>\r\n<p>It is possible to set more than one version, using ```+``` as separator (e.g. 1.0+2.1).</p>\r\n<p>The keyword ```all``` can be used to return all versions of the matching resource.</p>\r\n<p>The keyword ```latest``` can be used to return the latest production version of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "LATEST"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "<p>The id of the item to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. A+Q+M).</p>\r\n<p>The keyword ```all``` can be used to return all items of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "<p>Instructs the web service to return (or not) the artefacts referenced by the artefact to be returned.</p><p>Possible values are:</p><ul><li><code>none</code>: No references will be returned</li><li><code>parents</code>: Returns the artefacts that use the artefact matching the query</li><li><code>parentsandsiblings</code>: Returns the artefacts that use the artefact matching the query, as well as the artefacts referenced by these artefacts</li><li><code>children</code>: Returns the artefacts referenced by the artefact to be returned</li><li><code>descendants</code>: References of references, up to any level, will be returned</li><li><code>all</code>: The combination of parentsandsiblings and descendants</li><li>In addition, a concrete type of resource may also be used (for example, references=codelist).</li></ul>",
+            "schema": {
+              "enum": [
+                "none",
+                "parents",
+                "parentsandsiblings",
+                "children",
+                "descendants",
+                "all",
+                "datastructure",
+                "metadatastructure",
+                "categoryscheme",
+                "conceptscheme",
+                "codelist",
+                "hierarchicalcodelist",
+                "organisationscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "dataflow",
+                "metadataflow",
+                "reportingtaxonomy",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "contentconstraint",
+                "actualconstraint",
+                "allowedconstraint",
+                "attachmentconstraint",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "namealiasscheme"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The amount of information to be returned.</p><p>Possible values are:</p><ul><li><code>allstubs</code>: All artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencestubs</code>: Referenced artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencepartial</code>: Referenced item schemes should only include items used by the artefact to be returned. For example, a concept scheme would only contain the concepts used in a DSD, and its isPartial flag would be set to <code>true</code></li><li><code>allcompletestubs</code>: All artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>referencecompletestubs</code>: Referenced artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>full</code>: All available information for all artefacts should be returned</li></ul>",
+            "schema": {
+              "enum": [
+                "allstubs",
+                "referencestubs",
+                "referencepartial",
+                "allcompletestubs",
+                "referencecompletestubs",
+                "full"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/{structure}/{agencyId}/{resourceId}/{version}/{itemId}": {
+      "get": {
+        "tags": [
+          "Structure queries"
+        ],
+        "summary": "Item Scheme queries",
+        "description": "Item queries extend structure queries by allowing to retrieve items in item schemes such as particular codes in a codelist.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The type of item scheme (e.g. codelist, agencyscheme, etc.)",
+            "required": true,
+            "schema": {
+              "enum": [
+                "conceptscheme",
+                "codelist",
+                "categoryscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "vtlmappingscheme",
+                "valuelist",
+                "structure"
+              ],
+              "type": "string",
+              "default": "structure",
+              "example": null
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "<p>The agency maintaining the artefact to be returned.</p>\r\n<p>It is possible to set more than one agency, using ```+``` as separator (e.g. BIS+ECB).</p>\r\n<p>The keyword ```all``` can be used to indicate that artefacts maintained by any maintenance agency should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "<p>The id of the artefact to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. CL_FREQ+CL_CONF_STATUS).</p>\r\n<p>The keyword ```all``` can be used to indicate that any artefact of the specified resource type, {agencyID} and {version} should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "<p>The version of the artefact to be returned.</p>\r\n<p>It is possible to set more than one version, using ```+``` as separator (e.g. 1.0+2.1).</p>\r\n<p>The keyword ```all``` can be used to return all versions of the matching resource.</p>\r\n<p>The keyword ```latest``` can be used to return the latest production version of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "LATEST"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "<p>The id of the item to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. A+Q+M).</p>\r\n<p>The keyword ```all``` can be used to return all items of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "<p>Instructs the web service to return (or not) the artefacts referenced by the artefact to be returned.</p><p>Possible values are:</p><ul><li><code>none</code>: No references will be returned</li><li><code>parents</code>: Returns the artefacts that use the artefact matching the query</li><li><code>parentsandsiblings</code>: Returns the artefacts that use the artefact matching the query, as well as the artefacts referenced by these artefacts</li><li><code>children</code>: Returns the artefacts referenced by the artefact to be returned</li><li><code>descendants</code>: References of references, up to any level, will be returned</li><li><code>all</code>: The combination of parentsandsiblings and descendants</li><li>In addition, a concrete type of resource may also be used (for example, references=codelist).</li></ul>",
+            "schema": {
+              "enum": [
+                "none",
+                "parents",
+                "parentsandsiblings",
+                "children",
+                "descendants",
+                "all",
+                "datastructure",
+                "metadatastructure",
+                "categoryscheme",
+                "conceptscheme",
+                "codelist",
+                "hierarchicalcodelist",
+                "organisationscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "dataflow",
+                "metadataflow",
+                "reportingtaxonomy",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "contentconstraint",
+                "actualconstraint",
+                "allowedconstraint",
+                "attachmentconstraint",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "namealiasscheme"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The amount of information to be returned.</p><p>Possible values are:</p><ul><li><code>allstubs</code>: All artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencestubs</code>: Referenced artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencepartial</code>: Referenced item schemes should only include items used by the artefact to be returned. For example, a concept scheme would only contain the concepts used in a DSD, and its isPartial flag would be set to <code>true</code></li><li><code>allcompletestubs</code>: All artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>referencecompletestubs</code>: Referenced artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>full</code>: All available information for all artefacts should be returned</li></ul>",
+            "schema": {
+              "enum": [
+                "allstubs",
+                "referencestubs",
+                "referencepartial",
+                "allcompletestubs",
+                "referencecompletestubs",
+                "full"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "description": "Specifies the client's preferred language.",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "description": "Instructs to return the content matching the query only if it has changed since the supplied timestamp.",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/{structure}/{agencyId}/{resourceId}/{version}": {
+      "get": {
+        "tags": [
+          "Structure queries"
+        ],
+        "summary": "Get data structures",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The type of structural metadata (e.g. codelist, dataflow, etc.)",
+            "required": true,
+            "schema": {
+              "enum": [
+                "datastructure",
+                "metadatastructure",
+                "dataflow",
+                "metadataflow",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "dataconstraint",
+                "metadataconstraint",
+                "conceptscheme",
+                "codelist",
+                "categoryscheme",
+                "hierarchy",
+                "hierarchyassociation",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "vtlmappingscheme",
+                "valuelist",
+                "structuremap",
+                "representationmap",
+                "conceptschememap",
+                "categoryschememap",
+                "organisationschememap",
+                "reportingtaxonomymap",
+                "structure"
+              ],
+              "type": "string",
+              "default": "structure",
+              "example": null
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "<p>The agency maintaining the artefact to be returned.</p>\r\n<p>It is possible to set more than one agency, using ```+``` as separator (e.g. BIS+ECB).</p>\r\n<p>The keyword ```all``` can be used to indicate that artefacts maintained by any maintenance agency should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "<p>The id of the artefact to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. CL_FREQ+CL_CONF_STATUS).</p>\r\n<p>The keyword ```all``` can be used to indicate that any artefact of the specified resource type, {agencyID} and {version} should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "<p>The version of the artefact to be returned.</p>\r\n<p>It is possible to set more than one version, using ```+``` as separator (e.g. 1.0+2.1).</p>\r\n<p>The keyword ```all``` can be used to return all versions of the matching resource.</p>\r\n<p>The keyword ```latest``` can be used to return the latest production version of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "LATEST"
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "<p>Instructs the web service to return (or not) the artefacts referenced by the artefact to be returned.</p><p>Possible values are:</p><ul><li><code>none</code>: No references will be returned</li><li><code>parents</code>: Returns the artefacts that use the artefact matching the query</li><li><code>parentsandsiblings</code>: Returns the artefacts that use the artefact matching the query, as well as the artefacts referenced by these artefacts</li><li><code>children</code>: Returns the artefacts referenced by the artefact to be returned</li><li><code>descendants</code>: References of references, up to any level, will be returned</li><li><code>all</code>: The combination of parentsandsiblings and descendants</li><li>In addition, a concrete type of resource may also be used (for example, references=codelist).</li></ul>",
+            "schema": {
+              "enum": [
+                "none",
+                "parents",
+                "parentsandsiblings",
+                "children",
+                "descendants",
+                "all",
+                "datastructure",
+                "metadatastructure",
+                "categoryscheme",
+                "conceptscheme",
+                "codelist",
+                "hierarchicalcodelist",
+                "organisationscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "dataflow",
+                "metadataflow",
+                "reportingtaxonomy",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "contentconstraint",
+                "actualconstraint",
+                "allowedconstraint",
+                "attachmentconstraint",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "namealiasscheme"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The amount of information to be returned.</p><p>Possible values are:</p><ul><li><code>allstubs</code>: All artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencestubs</code>: Referenced artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencepartial</code>: Referenced item schemes should only include items used by the artefact to be returned. For example, a concept scheme would only contain the concepts used in a DSD, and its isPartial flag would be set to <code>true</code></li><li><code>allcompletestubs</code>: All artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>referencecompletestubs</code>: Referenced artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>full</code>: All available information for all artefacts should be returned</li></ul>",
+            "schema": {
+              "enum": [
+                "allstubs",
+                "referencestubs",
+                "referencepartial",
+                "allcompletestubs",
+                "referencecompletestubs",
+                "full"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Replaces the specified structure stream.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The structure.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "The agency identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "The resource identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "The version.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Deletes the specified structure.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The structure.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "The agency identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "The resource identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "The version.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/{structure}/{agencyId}/{resourceId}/{version}": {
+      "get": {
+        "tags": [
+          "Structure queries"
+        ],
+        "summary": "Get data structures",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The type of structural metadata (e.g. codelist, dataflow, etc.)",
+            "required": true,
+            "schema": {
+              "enum": [
+                "datastructure",
+                "metadatastructure",
+                "dataflow",
+                "metadataflow",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "dataconstraint",
+                "metadataconstraint",
+                "conceptscheme",
+                "codelist",
+                "categoryscheme",
+                "hierarchy",
+                "hierarchyassociation",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "vtlmappingscheme",
+                "valuelist",
+                "structuremap",
+                "representationmap",
+                "conceptschememap",
+                "categoryschememap",
+                "organisationschememap",
+                "reportingtaxonomymap",
+                "structure"
+              ],
+              "type": "string",
+              "default": "structure",
+              "example": null
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "<p>The agency maintaining the artefact to be returned.</p>\r\n<p>It is possible to set more than one agency, using ```+``` as separator (e.g. BIS+ECB).</p>\r\n<p>The keyword ```all``` can be used to indicate that artefacts maintained by any maintenance agency should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "<p>The id of the artefact to be returned.</p>\r\n<p>It is possible to set more than one id, using ```+``` as separator (e.g. CL_FREQ+CL_CONF_STATUS).</p>\r\n<p>The keyword ```all``` can be used to indicate that any artefact of the specified resource type, {agencyID} and {version} should be returned.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "ALL"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "<p>The version of the artefact to be returned.</p>\r\n<p>It is possible to set more than one version, using ```+``` as separator (e.g. 1.0+2.1).</p>\r\n<p>The keyword ```all``` can be used to return all versions of the matching resource.</p>\r\n<p>The keyword ```latest``` can be used to return the latest production version of the matching resource.</p>",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "LATEST"
+            }
+          },
+          {
+            "name": "references",
+            "in": "query",
+            "description": "<p>Instructs the web service to return (or not) the artefacts referenced by the artefact to be returned.</p><p>Possible values are:</p><ul><li><code>none</code>: No references will be returned</li><li><code>parents</code>: Returns the artefacts that use the artefact matching the query</li><li><code>parentsandsiblings</code>: Returns the artefacts that use the artefact matching the query, as well as the artefacts referenced by these artefacts</li><li><code>children</code>: Returns the artefacts referenced by the artefact to be returned</li><li><code>descendants</code>: References of references, up to any level, will be returned</li><li><code>all</code>: The combination of parentsandsiblings and descendants</li><li>In addition, a concrete type of resource may also be used (for example, references=codelist).</li></ul>",
+            "schema": {
+              "enum": [
+                "none",
+                "parents",
+                "parentsandsiblings",
+                "children",
+                "descendants",
+                "all",
+                "datastructure",
+                "metadatastructure",
+                "categoryscheme",
+                "conceptscheme",
+                "codelist",
+                "hierarchicalcodelist",
+                "organisationscheme",
+                "agencyscheme",
+                "dataproviderscheme",
+                "dataconsumerscheme",
+                "organisationunitscheme",
+                "dataflow",
+                "metadataflow",
+                "reportingtaxonomy",
+                "provisionagreement",
+                "structureset",
+                "process",
+                "categorisation",
+                "contentconstraint",
+                "actualconstraint",
+                "allowedconstraint",
+                "attachmentconstraint",
+                "transformationscheme",
+                "rulesetscheme",
+                "userdefinedoperatorscheme",
+                "customtypescheme",
+                "namepersonalisationscheme",
+                "namealiasscheme"
+              ],
+              "type": "string",
+              "default": "none",
+              "example": null
+            }
+          },
+          {
+            "name": "detail",
+            "in": "query",
+            "description": "<p>The amount of information to be returned.</p><p>Possible values are:</p><ul><li><code>allstubs</code>: All artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencestubs</code>: Referenced artefacts should be returned as stubs, containing only identification information, as well as the artefacts' name</li><li><code>referencepartial</code>: Referenced item schemes should only include items used by the artefact to be returned. For example, a concept scheme would only contain the concepts used in a DSD, and its isPartial flag would be set to <code>true</code></li><li><code>allcompletestubs</code>: All artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>referencecompletestubs</code>: Referenced artefacts should be returned as complete stubs, containing identification information, the artefacts' name, description, annotations and isFinal information</li><li><code>full</code>: All available information for all artefacts should be returned</li></ul>",
+            "schema": {
+              "enum": [
+                "allstubs",
+                "referencestubs",
+                "referencepartial",
+                "allcompletestubs",
+                "referencecompletestubs",
+                "full"
+              ],
+              "type": "string",
+              "default": "full",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-encoding",
+            "in": "header",
+            "description": "<p>Specifies whether the response should be compressed and how.</p><p><code>identity</code> (the default) indicates that no compression will be performed.</p>",
+            "schema": {
+              "enum": [
+                "br",
+                "compress",
+                "deflate",
+                "exi",
+                "gzip",
+                "identity",
+                "pack200-gzip",
+                "zstd"
+              ],
+              "type": "string",
+              "default": "identity",
+              "example": null
+            }
+          },
+          {
+            "name": "accept-language",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "example": null
+            }
+          },
+          {
+            "name": "if-modified-since",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Replaces the specified structure stream.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The structure.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "The agency identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "The resource identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "The version.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "apiVersion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Deletes the specified structure.",
+        "parameters": [
+          {
+            "name": "structure",
+            "in": "path",
+            "description": "The structure.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "agencyId",
+            "in": "path",
+            "description": "The agency identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "path",
+            "description": "The resource identifier.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "The version.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "apiVersion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/structure": {
+      "post": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Append the specified structure stream.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/rest/v1/structure": {
+      "post": {
+        "tags": [
+          "Structure actions"
+        ],
+        "summary": "Append the specified structure stream.",
+        "parameters": [
+          {
+            "name": "apiVersion",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/rdf+xml": { },
+              "application/vnd.sdmx.structure+json;version=1.0": { },
+              "application/vnd.sdmx.structure+json;version=1.0.0-wd": { },
+              "text/json": { },
+              "application/json": { },
+              "application/vnd.sdmx.structure+xml; version=2.1": { },
+              "application/vnd.sdmx.structure+xml; version=2.0": { },
+              "application/xml; version=2.1": { },
+              "text/xml; version=2.1": { }
+            }
+          },
+          "304": {
+            "description": "No changes"
+          },
+          "400": {
+            "description": "Bad syntax"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "406": {
+            "description": "Not acceptable"
+          },
+          "413": {
+            "description": "Request entity too large"
+          },
+          "414": {
+            "description": "Uri too long"
+          },
+          "500": {
+            "description": "Internal server error"
+          },
+          "501": {
+            "description": "Not implemented"
+          },
+          "503": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": { }
+}

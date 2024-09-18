@@ -4,6 +4,8 @@ click
 python-dotenv
 isodate
 nanoid
+fuzzywuzzy
+python-Levenshtein
 
 # Spreadsheets
 openpyxl
@@ -48,3 +50,6 @@ panel
 ipywidgets
 ipycytoscape
 streamlit
+
+#APIs
+comtradeapicall
