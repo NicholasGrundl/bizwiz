@@ -92,7 +92,6 @@ Always refer to the Makefile in the project root to see all available commands a
 This project uses environment variables to manage configuration and sensitive information such as API keys. We use two different methods for managing these variables:
 
 1. `.env` files: Used for the package code
-2. `.streamlit/secrets.toml`: Used for the Streamlit app
 
 ### Setting up .env file
 
@@ -117,14 +116,6 @@ This project uses environment variables to manage configuration and sensitive in
   load_dotenv()
 
   api_key = os.environ.get('API_KEY')
-  ```
-
-- In Streamlit, you can access secrets using `st.secrets`:
-
-  ```python
-  import streamlit as st
-
-  api_key = st.secrets['api_key']
   ```
 
 Remember to never commit sensitive information like API keys to version control. Always use environment variables or secrets management for such data.

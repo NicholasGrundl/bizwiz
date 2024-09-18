@@ -242,8 +242,7 @@ def process_trade_data(
     processed_df['mass'] = processed_df['netWgt']
     processed_df['price'] = processed_df['value']/processed_df['mass']
     #drop price out of bounds/bad data
-    processed_df = processed_df.query('price>0')
-    processed_df = processed_df.query('price<99999999999')
+    processed_df = processed_df[processed_df['price'].between(0,9999999)].copy()
 
     #countries
     processed_df['iso'] = processed_df['reporterISO']
