@@ -9,5 +9,8 @@ pytest-cov
 ruff
 mypy
 
+#ai context generation
+repo2txt
+
 #editable
 -e .
