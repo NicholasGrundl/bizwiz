@@ -1,11 +1,29 @@
 """Find HS Code(s) from keyword"""
-import pandas as pd
+from typing_extensions import Annotated
 
-import comtradeapicall as comtrade
+import pandas as pd
+from pydantic import BaseModel, Field, StringConstraints
+import openai
+import instructor
+from hamilton.function_modifiers import tag
+
 from ... import trade_data
 
+VariableName = Annotated[
+    str, 
+    StringConstraints(to_lower=True, pattern=r"[a-z][_a-z0-9]*")
+]
 
 
+class RankedResult(BaseModel):
+    id: str = Field(description="The HS Code as a string")
+    score: int = Field(description="The fuzzy search score of the result")
+    text: str = Field(description="The text of the result")
+    rank : int = Field(description="The ordinal rank of the result, 1 is the best")
+    reasoning: str = Field(description="The reasoning behind the rank")
+    chemical_name: VariableName = Field(description="common chemical name")
+
+@tag(cache="parquet")
 def hs_codes()->pd.DataFrame:
     # List available reference data
     df = trade_data.get_hs_commodities_df(hs_versions=None)
@@ -66,8 +84,20 @@ def rank_prompt(keyword:str, keyword_context:str, chemical_context:str)->str:
   
     # Instructions
 
-    Rank the Keyword results ordinally starting with 1 as the best and most appropriate HS Code for the search.
+    Choose the best and most appropriate HS Code given the search.
     """
 
     return llm_prompt
 
+def rank_search(api_key:str | None, rank_prompt:str, model: str = "gpt-4o-mini")->RankedResult:
+    llm_client = instructor.from_openai(openai.OpenAI(api_key=api_key))
+
+
+    messages = [{"role": "user","content": rank_prompt,}]
+    #generate the new question
+    response = llm_client.chat.completions.create(
+        model=model,
+        response_model=RankedResult,
+        messages=messages,
+    )
+    return response

@@ -4,9 +4,11 @@ import pandas as pd
 
 from hamilton import driver
 
-from . import dags
+from ..llm import load_llm_env
+from .dags import find_country_data, find_hs_code
 
-def find_country_codes(
+
+def get_country_codes(
     keywords:list[str],
     filepath : str | pathlib.Path,
 )->pd.DataFrame:
@@ -19,7 +21,7 @@ def find_country_codes(
     
     
     #build graph
-    dr =  driver.Builder().with_modules(dags.find_country_data).build()
+    dr =  driver.Builder().with_modules(find_country_data).build()
 
     #execute
     final_vars = ["country_data"]
@@ -43,4 +45,41 @@ def find_country_codes(
             'keyword' : keyword,
         })
             
+    return pd.DataFrame(data=data)
+
+
+def get_hs_codes(
+    keywords:list[str],
+    api_key : str | None = None,
+)->pd.DataFrame:
+    """Search for HS codes and use an llm to rank them"""
+    #using llm
+    if api_key is None:
+        load_llm_env()
+
+    #build graph
+    dr =  driver.Builder().with_modules(find_hs_code).build()
+    
+    #execute
+    final_vars = ["rank_search"]
+    inputs = {
+        'keyword' : '',
+        'chemical_formula' : None,
+        'api_key' : api_key,
+    }
+
+    data=[]
+    for keyword in keywords:
+        overrides =  {'keyword' : keyword}
+        results = dr.execute(
+            final_vars=final_vars,
+            inputs=inputs,
+            overrides=overrides,
+        )
+        best_hs_code = results['rank_search'].model_dump()
+        data.append({
+            **best_hs_code,
+            'keyword' : keyword,
+        })
+
     return pd.DataFrame(data=data)
