@@ -10,9 +10,16 @@ def get_trade_data(
     hs_codes : list[str],
     country_code : str = 'USA',
     year : int = 2024,
+    printer = None
 )->list[dict]:
-    
+    if printer is None:
+        def printer(msg):
+            return None
+    else:
+        printer = printer
+        
     ##### Check what data is available for country in year
+    printer("-- checking available data")
     dr =  driver.Builder().with_modules(find_available_data).build()
     #execute
     inputs = {  
@@ -27,13 +34,15 @@ def get_trade_data(
     )
     available_df = results['available_df'].copy()
     if available_df.empty:
+        printer("-- no data available for this year")
         #No trade data available for that year
         return []
 
-
+    printer("-- data available, grabbing trade data")
     ##### Grab data for each hs code code
     trade_data = []
     for hs_code in hs_codes:
+        printer(f"-- grabbing data for hs_code: {hs_code}")
         data = {
             'hs_code' : hs_code,
         }
@@ -47,7 +56,7 @@ def get_trade_data(
             'available_df' : available_df,
             'api_key' : api_key,
         }
-
+        printer("-- grabbing import data")
         results = dr.execute(
             final_vars=["processed_data"],
             inputs=inputs,
@@ -56,7 +65,7 @@ def get_trade_data(
         df = results['processed_data']
         df['kind'] = 'import'
         data['import'] = df.copy()
-
+        printer("-- grabbing export data")
         results = dr.execute(
             final_vars=["processed_data"],
             inputs=inputs,

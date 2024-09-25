@@ -1,0 +1,6 @@
+id,score,text,rank,reasoning,chemical_name,keyword
+281511,90,281511 - Sodium hydroxide (caustic soda); solid,1,"Sodium hydroxide, commonly known as caustic soda, is the most widely recognized chemical associated with the keyword 'caustic'. Thus, it is ranked the highest for this search.",sodium_hydroxide,caustic
+2807,90,Sulfuric acid (H2SO4),1,"Sulfuric acid is the direct chemical representation of H2SO4 and is covered under this HS code, making it the most suitable choice.",sulfuric acid,h2so4
+2833,95,Sodium sulfate,1,"Sodium sulfate is the direct chemical compound for the given input 'na2so4', and it corresponds perfectly to the chemical structure indicated by the provided formula.",sodium_sulfate,na2so4
+310430,90,"310430 - Fertilizers, mineral or chemical; potassic, potassium sulphate",1,This HS Code specifically refers to potassium sulphate and is highly relevant as it directly includes 'potassic' and mentions 'potassium sulphate'.,potassium sulphate,potassium sulphate
+310420,90,"310420 - Fertilizers, mineral or chemical; potassic, potassium chloride",1,"This HS Code specifically refers to potassium chloride as a potassic fertilizer, making it the most relevant and accurate choice for the search term provided.",potassium chloride,potassium chloride

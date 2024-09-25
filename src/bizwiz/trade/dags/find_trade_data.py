@@ -73,6 +73,66 @@ def processed_data(
     df = raw_trade_data.copy()
     df = df[~df.isna()]
 
+    #if empty send back empty
+    if df.empty:
+        #REFACTOR, verbose for now to catch error in near term
+        comtrade_columns = [
+            'typeCode',
+            'freqCode',
+            'refPeriodId',
+            'refYear',
+            'refMonth',
+            'period',
+            'reporterCode',
+            'reporterISO',
+            'reporterDesc',
+            'flowCode',
+            'flowDesc',
+            'partnerCode',
+            'partnerISO',
+            'partnerDesc',
+            'partner2Code',
+            'partner2ISO',
+            'partner2Desc',
+            'classificationCode',
+            'classificationSearchCode',
+            'isOriginalClassification',
+            'cmdCode',
+            'cmdDesc',
+            'aggrLevel',
+            'isLeaf',
+            'customsCode',
+            'customsDesc',
+            'mosCode',
+            'motCode',
+            'motDesc',
+            'qtyUnitCode',
+            'qtyUnitAbbr',
+            'qty',
+            'isQtyEstimated',
+            'altQtyUnitCode',
+            'altQtyUnitAbbr',
+            'altQty',
+            'isAltQtyEstimated',
+            'netWgt',
+            'isNetWgtEstimated',
+            'grossWgt',
+            'isGrossWgtEstimated',
+            'cifvalue',
+            'fobvalue',
+            'primaryValue',
+            'legacyEstimationFlag',
+            'isReported',
+            'isAggregate'
+        ]
+        #order columns
+        ordered_columms = [
+            'date','iso','partner','price','mass','value','qty','qty_units','qty_unit_code'
+        ]
+        df = pd.DataFrame(data=[], columns = ordered_columms + comtrade_columns)
+        unordered_columns = df.columns.difference(ordered_columms).tolist()
+        return df[ordered_columms+unordered_columns].copy()
+
     #time metrics
     df['date'] = pd.to_datetime(df['period'], format='%Y%m')
 
